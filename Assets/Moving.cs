@@ -36,10 +36,11 @@ public class Moving : MonoBehaviour
         Vector3 movement = transform.TransformDirection(movementInput) * speed;
         PlayerBody.velocity = new Vector3(movement.x,PlayerBody.velocity.y,movement.z);
 
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             PlayerBody.AddForce(Vector3.up * Jumpforce, ForceMode.Impulse);
         }
+
     }
 
     private void MovePlayerCamera()
