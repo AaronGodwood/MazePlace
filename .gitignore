@@ -14,8 +14,8 @@
 .vs/
 .vscode/
 .idea/
-*.csproj
-*.sln
+/*.csproj
+/*.sln
 *.suo
 *.user
 *.userprefs
@@ -45,3 +45,7 @@ ignore.conf
 # Adobe Substance 3D plugin: proprietary, install separately (see README)
 /Assets/Adobe/
 /Assets/Adobe.meta
+
+# dotnet test harness
+/tests/**/bin/
+/tests/**/obj/
