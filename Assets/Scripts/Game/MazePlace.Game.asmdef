@@ -1,0 +1,6 @@
+{
+    "name": "MazePlace.Game",
+    "rootNamespace": "MazePlace.Game",
+    "references": ["MazePlace.Core"],
+    "autoReferenced": true
+}

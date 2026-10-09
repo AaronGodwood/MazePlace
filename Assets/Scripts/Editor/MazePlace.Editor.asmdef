@@ -1,0 +1,7 @@
+{
+    "name": "MazePlace.Editor",
+    "rootNamespace": "MazePlace.Editor",
+    "references": ["MazePlace.Core", "MazePlace.Game"],
+    "includePlatforms": ["Editor"],
+    "autoReferenced": false
+}

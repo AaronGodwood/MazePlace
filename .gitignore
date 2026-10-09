@@ -49,3 +49,4 @@ ignore.conf
 # dotnet test harness
 /tests/**/bin/
 /tests/**/obj/
+/Screenshots/
