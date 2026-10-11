@@ -1,6 +1,6 @@
 {
     "name": "MazePlace.Game",
     "rootNamespace": "MazePlace.Game",
-    "references": ["MazePlace.Core"],
+    "references": ["MazePlace.Core", "Unity.InputSystem"],
     "autoReferenced": true
 }

@@ -15,6 +15,7 @@ namespace MazePlace.Game
         public const float WallHeight = 3f;
         public const float WallThickness = 0.25f;
         public const float LevelSpacing = WallHeight + WallThickness;
+        public const float ShaftSize = CellSize * 0.5f;
 
         public const int WallSubmesh = 0;
         public const int FloorSubmesh = 1;
@@ -41,6 +42,8 @@ namespace MazePlace.Game
         {
             var size = maze.Size;
             var mesh = new MeshBuilder(submeshCount: 2);
+            var alongX = new Vector3(CellSize - WallThickness, WallHeight, WallThickness);
+            var alongZ = new Vector3(WallThickness, WallHeight, CellSize - WallThickness);
 
             for (var row = 0; row < size.Rows; row++)
             {
@@ -51,21 +54,55 @@ namespace MazePlace.Game
                     var floorCentre = CellCentre(cell);
                     var wallCentre = floorCentre + Vector3.up * WallHeight / 2;
 
-                    if (!maze.IsOpen(index, Direction.Down))
-                        mesh.AddBox(FloorSubmesh, floorCentre - Vector3.up * WallThickness / 2, new Vector3(CellSize, WallThickness, CellSize));
+                    var floorSlab = floorCentre - Vector3.up * WallThickness / 2;
+                    if (maze.IsOpen(index, Direction.Down))
+                        AddFloorAroundShaft(mesh, floorSlab);
+                    else
+                        mesh.AddBox(FloorSubmesh, floorSlab, new Vector3(CellSize, WallThickness, CellSize));
 
                     if (!maze.IsOpen(index, Direction.East))
-                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.right * CellSize / 2, new Vector3(WallThickness, WallHeight, CellSize + WallThickness));
+                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.right * CellSize / 2, alongZ);
                     if (!maze.IsOpen(index, Direction.South))
-                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.back * CellSize / 2, new Vector3(CellSize + WallThickness, WallHeight, WallThickness));
+                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.back * CellSize / 2, alongX);
                     if (column == 0)
-                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.left * CellSize / 2, new Vector3(WallThickness, WallHeight, CellSize + WallThickness));
+                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.left * CellSize / 2, alongZ);
                     if (row == 0)
-                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.forward * CellSize / 2, new Vector3(CellSize + WallThickness, WallHeight, WallThickness));
+                        mesh.AddBox(WallSubmesh, wallCentre + Vector3.forward * CellSize / 2, alongX);
                 }
             }
 
+            // Walls stop short of the corners and posts fill them, so no two walls overlap and z-fight.
+            var post = new Vector3(WallThickness, WallHeight, WallThickness);
+            for (var row = 0; row <= size.Rows; row++)
+                for (var column = 0; column <= size.Columns; column++)
+                    mesh.AddBox(WallSubmesh, CellCentre(new Cell(column, row, level)) + new Vector3(-CellSize / 2, WallHeight / 2, CellSize / 2), post);
+
             return mesh.Build($"Level {level}");
+        }
+
+        /// <summary>
+        /// The shaft only takes up the middle of the cell, so the player can walk around it
+        /// instead of always dropping through.
+        /// </summary>
+        private static void AddFloorAroundShaft(MeshBuilder mesh, Vector3 centre)
+        {
+            var rim = (CellSize - ShaftSize) / 2;
+            var offset = (ShaftSize + rim) / 2;
+            mesh.AddBox(FloorSubmesh, centre + Vector3.forward * offset, new Vector3(CellSize, WallThickness, rim));
+            mesh.AddBox(FloorSubmesh, centre + Vector3.back * offset, new Vector3(CellSize, WallThickness, rim));
+            mesh.AddBox(FloorSubmesh, centre + Vector3.left * offset, new Vector3(rim, WallThickness, ShaftSize));
+            mesh.AddBox(FloorSubmesh, centre + Vector3.right * offset, new Vector3(rim, WallThickness, ShaftSize));
+        }
+
+        /// <summary>Finds the cell whose floor the given point is standing on or above.</summary>
+        public static bool TryGetCell(MazeSize size, Vector3 position, out int cell)
+        {
+            var candidate = new Cell(
+                Mathf.RoundToInt(position.x / CellSize),
+                Mathf.RoundToInt(-position.z / CellSize),
+                Mathf.FloorToInt((position.y + WallThickness) / LevelSpacing));
+            cell = size.Contains(candidate) ? size.IndexOf(candidate) : -1;
+            return cell >= 0;
         }
 
         private sealed class MeshBuilder

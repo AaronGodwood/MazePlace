@@ -27,6 +27,15 @@ namespace MazePlace.Game
             AddMarker("Goal", maze.GoalCell, goalMaterial);
         }
 
+        public Transform LevelRoot(int level) => levels[level].transform;
+
+        /// <summary>Hides every level above <paramref name="topLevel"/> so lower ones can be seen from above.</summary>
+        public void ShowLevelsUpTo(int topLevel)
+        {
+            for (var level = 0; level < levels.Count; level++)
+                levels[level].SetActive(level <= topLevel);
+        }
+
         private GameObject CreateLevel(Maze maze, int level)
         {
             var mesh = MazeLayout.BuildLevelMesh(maze, level);
