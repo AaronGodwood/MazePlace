@@ -1,0 +1,59 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="MazeUI.uss" />
+    <ui:VisualElement name="root" class="root" picking-mode="Ignore">
+        <ui:VisualElement name="mainMenu" class="screen screen--centred screen--dimmed">
+            <ui:VisualElement class="panel">
+                <ui:Label text="MazePlace" class="title" />
+                <ui:Label text="Generate, explore and solve 3D mazes" class="subtitle" />
+                <ui:Button name="newMazeButton" text="New maze" class="menu-button" />
+                <ui:Button name="loadButton" text="Load" class="menu-button" />
+                <ui:Button name="optionsButton" text="Options" class="menu-button" />
+                <ui:Button name="quitButton" text="Quit" class="menu-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="options" class="screen screen--centred screen--dimmed hidden">
+            <ui:VisualElement class="panel panel--wide">
+                <ui:Label text="Options" class="heading" />
+                <ui:SliderInt name="columnsSlider" label="Columns" show-input-field="true" class="option" />
+                <ui:SliderInt name="rowsSlider" label="Rows" show-input-field="true" class="option" />
+                <ui:SliderInt name="levelsSlider" label="Levels" show-input-field="true" class="option" />
+                <ui:DropdownField name="generatorDropdown" label="Generator" class="option" />
+                <ui:DropdownField name="solverDropdown" label="Solver" class="option" />
+                <ui:IntegerField name="seedField" label="Seed (0 = random)" class="option" />
+                <ui:Button name="optionsBackButton" text="Back" class="menu-button menu-button--back" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="slots" class="screen screen--centred screen--dimmed hidden">
+            <ui:VisualElement class="panel panel--wide">
+                <ui:Label name="slotsHeading" class="heading" />
+                <ui:Button name="slot1Button" class="slot-button" />
+                <ui:Button name="slot2Button" class="slot-button" />
+                <ui:Button name="slot3Button" class="slot-button" />
+                <ui:Button name="slot4Button" class="slot-button" />
+                <ui:Button name="slotsBackButton" text="Back" class="menu-button menu-button--back" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="hud" class="screen hidden" picking-mode="Ignore">
+            <ui:VisualElement class="hud-bar" picking-mode="Ignore">
+                <ui:Button name="solveButton" text="Solve (F)" class="hud-button" />
+                <ui:Button name="viewButton" text="Change view (Tab)" class="hud-button" />
+                <ui:Button name="regenerateButton" text="New maze (G)" class="hud-button" />
+                <ui:Button name="pauseButton" text="Menu (Esc)" class="hud-button" />
+            </ui:VisualElement>
+            <ui:Label name="statusLabel" class="hud-status" picking-mode="Ignore" />
+            <ui:Label name="hintLabel" class="hud-hint" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="pause" class="screen screen--centred screen--dimmed hidden">
+            <ui:VisualElement class="panel">
+                <ui:Label text="Paused" class="heading" />
+                <ui:Button name="resumeButton" text="Resume" class="menu-button" />
+                <ui:Button name="saveButton" text="Save" class="menu-button" />
+                <ui:Button name="mainMenuButton" text="Main menu" class="menu-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

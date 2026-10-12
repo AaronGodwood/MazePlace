@@ -1,8 +1,10 @@
 using System.Linq;
 using MazePlace.Game;
+using MazePlace.Game.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace MazePlace.Editor
 {
@@ -70,9 +72,33 @@ namespace MazePlace.Editor
                 ("player", player.GetComponent<PlayerController>()));
             player.SetActive(false);
 
+            var ui = new GameObject("UI", typeof(UIDocument), typeof(MazeUI));
+            var document = ui.GetComponent<UIDocument>();
+            document.panelSettings = CreatePanelSettings();
+            document.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MazeUI.uxml");
+            Assign(ui.GetComponent<MazeUI>(), ("session", maze.GetComponent<MazeSession>()));
+
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
             AssetDatabase.SaveAssets();
+        }
+
+        private static PanelSettings CreatePanelSettings()
+        {
+            const string path = "Assets/UI/PanelSettings.asset";
+            var settings = AssetDatabase.LoadAssetAtPath<PanelSettings>(path);
+            if (settings == null)
+            {
+                settings = ScriptableObject.CreateInstance<PanelSettings>();
+                AssetDatabase.CreateAsset(settings, path);
+            }
+            settings.themeStyleSheet = AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>("Assets/UI/MazeTheme.tss");
+            settings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+            settings.referenceResolution = new Vector2Int(1920, 1080);
+            settings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+            settings.match = 0.5f;
+            EditorUtility.SetDirty(settings);
+            return settings;
         }
 
         private static Camera CreateCamera(string name, Transform parent)

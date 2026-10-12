@@ -1,0 +1,154 @@
+:root {
+    --accent: #ffcc40;
+    --text: #e8e6e1;
+    --muted: #9aa0aa;
+    --panel: rgba(18, 20, 26, 0.94);
+    --button: #2a2e37;
+    --button-hover: #3a404c;
+    --on-accent: #1a1a1a;
+}
+
+.root {
+    flex-grow: 1;
+    color: var(--text);
+}
+
+.hidden {
+    display: none;
+}
+
+.screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.screen--centred {
+    align-items: center;
+    justify-content: center;
+}
+
+.screen--dimmed {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.panel {
+    min-width: 380px;
+    padding: 32px 40px;
+    background-color: var(--panel);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.panel--wide {
+    min-width: 620px;
+}
+
+.title {
+    font-size: 60px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--accent);
+}
+
+.subtitle {
+    margin-bottom: 24px;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    color: var(--muted);
+}
+
+.heading {
+    margin-bottom: 16px;
+    font-size: 32px;
+    -unity-font-style: bold;
+}
+
+.menu-button,
+.slot-button,
+.hud-button {
+    border-width: 0;
+    color: var(--text);
+    background-color: var(--button);
+    transition-duration: 0.12s;
+}
+
+.menu-button:hover,
+.slot-button:hover,
+.hud-button:hover {
+    background-color: var(--button-hover);
+}
+
+.menu-button:active,
+.slot-button:active,
+.hud-button:active {
+    background-color: var(--accent);
+    color: var(--on-accent);
+}
+
+.menu-button {
+    height: 48px;
+    margin: 6px 0;
+    font-size: 20px;
+    border-radius: 8px;
+}
+
+.menu-button--back {
+    margin-top: 20px;
+}
+
+.slot-button {
+    height: 56px;
+    margin: 6px 0;
+    padding-left: 18px;
+    font-size: 18px;
+    -unity-text-align: middle-left;
+    border-radius: 8px;
+}
+
+.slot-button--empty {
+    color: var(--muted);
+}
+
+.option {
+    margin: 8px 0;
+    font-size: 18px;
+}
+
+.option > .unity-base-field__label {
+    min-width: 220px;
+    color: var(--text);
+}
+
+.hud-bar {
+    flex-direction: row;
+    padding: 12px;
+}
+
+.hud-button {
+    height: 36px;
+    margin-right: 8px;
+    padding: 0 14px;
+    font-size: 15px;
+    background-color: rgba(18, 20, 26, 0.85);
+    border-radius: 6px;
+}
+
+.hud-status {
+    position: absolute;
+    left: 16px;
+    bottom: 44px;
+    font-size: 18px;
+    color: var(--accent);
+}
+
+.hud-hint {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    font-size: 14px;
+    color: var(--muted);
+}

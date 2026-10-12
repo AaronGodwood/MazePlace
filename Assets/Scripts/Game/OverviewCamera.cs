@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace MazePlace.Game
 {
-    /// <summary>Orbit camera for looking down on the maze: drag to rotate, scroll to zoom.</summary>
+    /// <summary>Orbit camera for looking down on the maze: right-drag to rotate, scroll to zoom.</summary>
     [RequireComponent(typeof(Camera))]
     public sealed class OverviewCamera : MonoBehaviour
     {
@@ -49,7 +49,8 @@ namespace MazePlace.Game
             var mouse = Mouse.current;
             if (mouse == null) return;
 
-            if (mouse.leftButton.isPressed || mouse.rightButton.isPressed)
+            // Left clicks belong to the HUD buttons.
+            if (mouse.rightButton.isPressed)
             {
                 var delta = mouse.delta.ReadValue() * degreesPerPixel;
                 yaw += delta.x;
