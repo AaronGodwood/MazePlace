@@ -16,6 +16,8 @@ namespace MazePlace.Game
         {
             SolverKind.DepthFirst => "Depth-first",
             SolverKind.GreedyBestFirst => "Greedy best-first",
+            SolverKind.BreadthFirst => "Breadth-first",
+            SolverKind.AStar => "A*",
             _ => kind.ToString(),
         };
     }

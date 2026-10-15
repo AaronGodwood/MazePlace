@@ -8,6 +8,8 @@ namespace MazePlace.Core
     {
         DepthFirst,
         GreedyBestFirst,
+        BreadthFirst,
+        AStar,
     }
 
     public sealed class SolveResult
@@ -33,6 +35,8 @@ namespace MazePlace.Core
         {
             SolverKind.DepthFirst => DepthFirst(maze, start, goal),
             SolverKind.GreedyBestFirst => GreedyBestFirst(maze, start, goal),
+            SolverKind.BreadthFirst => BreadthFirst(maze, start, goal),
+            SolverKind.AStar => AStar(maze, start, goal),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
         };
 
@@ -59,7 +63,62 @@ namespace MazePlace.Core
             return Search(maze, start, goal, cell => frontier.Push(cell, DistanceToGoal(cell)), frontier.Pop, () => frontier.Count > 0);
         }
 
-        /// <summary>Shared graph search; the frontier's ordering is what makes it DFS or greedy.</summary>
+        /// <summary>Expands cells in order of distance from the start, so the path it finds is a shortest one.</summary>
+        public static SolveResult BreadthFirst(Maze maze, int start, int goal)
+        {
+            var queue = new Queue<int>();
+            queue.Enqueue(start);
+            return Search(maze, start, goal, queue.Enqueue, queue.Dequeue, () => queue.Count > 0);
+        }
+
+        /// <summary>
+        /// Expands the cell with the fewest steps so far plus Manhattan distance to the goal. That
+        /// distance never overestimates, so like BFS it finds a shortest path, but explores less.
+        /// </summary>
+        public static SolveResult AStar(Maze maze, int start, int goal)
+        {
+            var size = maze.Size;
+            var target = size.CellAt(goal);
+            int DistanceToGoal(int cell)
+            {
+                var c = size.CellAt(cell);
+                return Math.Abs(c.Column - target.Column) + Math.Abs(c.Row - target.Row) + Math.Abs(c.Level - target.Level);
+            }
+
+            // Many cells tie on cost; preferring the one nearer the goal heads straight for it
+            // instead of widening out. The tiebreak is below 1 so it never outranks a real cost.
+            double Priority(int cell, int cost) => cost + DistanceToGoal(cell) * (1 + 1.0 / (size.CellCount + 1));
+
+            var cost = Enumerable.Repeat(int.MaxValue, size.CellCount).ToArray();
+            var parent = Enumerable.Repeat(-1, size.CellCount).ToArray();
+            var closed = new bool[size.CellCount];
+            var explored = new List<int>();
+            var frontier = new MinHeap();
+            cost[start] = 0;
+            frontier.Push(start, Priority(start, 0));
+
+            while (frontier.Count > 0)
+            {
+                var cell = frontier.Pop();
+                // A cell is pushed again whenever a cheaper route to it turns up; skip the stale entries.
+                if (closed[cell]) continue;
+                closed[cell] = true;
+                explored.Add(cell);
+                if (cell == goal)
+                    return new SolveResult(explored, TracePath(parent, goal));
+
+                foreach (var next in maze.ConnectedNeighbours(cell).Where(n => cost[cell] + 1 < cost[n]))
+                {
+                    cost[next] = cost[cell] + 1;
+                    parent[next] = cell;
+                    frontier.Push(next, Priority(next, cost[next]));
+                }
+            }
+
+            return new SolveResult(explored, Array.Empty<int>());
+        }
+
+        /// <summary>Shared graph search; the frontier's ordering is what makes it DFS, BFS or greedy.</summary>
         private static SolveResult Search(Maze maze, int start, int goal, Action<int> push, Func<int> pop, Func<bool> any)
         {
             var parent = Enumerable.Repeat(-1, maze.Size.CellCount).ToArray();
