@@ -51,7 +51,8 @@ namespace MazePlace.Game.UI
             WireHud();
             WirePause();
 
-            session.MazeChanged += () => statusLabel.text = "";
+            session.MazeChanged += () => statusLabel.text = session.IsGenerating ? $"Carving with {DisplayNames.Of(session.Generator)}…" : "";
+            session.GenerationFinished += () => statusLabel.text = "";
             session.Solved += result => statusLabel.text = result.Found
                 ? $"{DisplayNames.Of(session.Settings.solver)}: explored {result.Explored.Count} of {session.Maze.Size.CellCount} cells, path {result.Path.Count} long"
                 : "No path to the goal";
@@ -117,6 +118,10 @@ namespace MazePlace.Game.UI
 
             BindDropdown("generatorDropdown", GeneratorOptions, DisplayNames.Of, settings.generator, v => settings.generator = v);
             BindDropdown("solverDropdown", SolverOptions, DisplayNames.Of, settings.solver, v => settings.solver = v);
+
+            var animate = root.Q<Toggle>("animateToggle");
+            animate.SetValueWithoutNotify(settings.animateGeneration);
+            animate.RegisterValueChangedCallback(e => settings.animateGeneration = e.newValue);
 
             var seed = root.Q<IntegerField>("seedField");
             seed.SetValueWithoutNotify(settings.seed);

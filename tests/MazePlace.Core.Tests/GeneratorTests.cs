@@ -71,6 +71,30 @@ public class GeneratorTests
         Assert.Contains(maze.Passages, p => p.HasFlag(Direction.Up));
     }
 
+    [Theory]
+    [InlineData(GeneratorKind.Kruskal)]
+    [InlineData(GeneratorKind.DepthFirst)]
+    [InlineData(GeneratorKind.Wilson)]
+    public void Replaying_every_step_rebuilds_the_maze(GeneratorKind kind)
+    {
+        var size = new MazeSize(9, 7, 3);
+        var generation = Generators.GenerateWithSteps(kind, size, new Random(4));
+
+        Assert.Equal(size.CellCount - 1, generation.Steps.Count);
+        Assert.Equal(generation.Maze.Passages, generation.After(generation.Steps.Count).Passages);
+        Assert.Equal(Generators.Generate(kind, size, new Random(4)).Passages, generation.Maze.Passages);
+    }
+
+    [Fact]
+    public void Partway_through_generation_only_the_first_steps_are_carved()
+    {
+        var generation = Generators.GenerateWithSteps(GeneratorKind.DepthFirst, new MazeSize(6, 6, 2), new Random(8));
+
+        Assert.All(generation.After(0).Passages, p => Assert.Equal(Direction.None, p));
+        Assert.Equal(10, PassageCount(generation.After(10)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => generation.After(generation.Steps.Count + 1));
+    }
+
     private static int PassageCount(Maze maze) =>
         Enumerable.Range(0, maze.Size.CellCount).Sum(cell => maze.ConnectedNeighbours(cell).Count()) / 2;
 

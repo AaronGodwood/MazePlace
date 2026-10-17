@@ -29,6 +29,22 @@ namespace MazePlace.Game
 
         public Transform LevelRoot(int level) => levels[level].transform;
 
+        /// <summary>Rebuilds one level's mesh in place, e.g. while generation is being replayed.</summary>
+        public void Redraw(Maze maze, int level, bool updateCollider)
+        {
+            Maze = maze;
+            var filter = levels[level].GetComponent<MeshFilter>();
+            var collider = levels[level].GetComponent<MeshCollider>();
+            var (oldVisual, oldCollider) = (filter.sharedMesh, collider.sharedMesh);
+
+            var mesh = MazeLayout.BuildLevelMesh(maze, level);
+            filter.sharedMesh = mesh;
+            if (updateCollider) collider.sharedMesh = mesh;
+
+            if (oldVisual != collider.sharedMesh) Dispose(oldVisual);
+            if (oldCollider != oldVisual && oldCollider != collider.sharedMesh) Dispose(oldCollider);
+        }
+
         /// <summary>Hides every level above <paramref name="topLevel"/> so lower ones can be seen from above.</summary>
         public void ShowLevelsUpTo(int topLevel)
         {
@@ -66,7 +82,11 @@ namespace MazePlace.Game
         {
             foreach (var level in levels)
             {
-                Dispose(level.GetComponent<MeshFilter>().sharedMesh);
+                // Mid-replay the collider can still hold an older mesh than the one on screen.
+                var visual = level.GetComponent<MeshFilter>().sharedMesh;
+                var collision = level.GetComponent<MeshCollider>().sharedMesh;
+                Dispose(visual);
+                if (collision != visual) Dispose(collision);
                 Dispose(level);
             }
             levels.Clear();

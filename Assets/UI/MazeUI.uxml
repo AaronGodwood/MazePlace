@@ -20,6 +20,7 @@
                 <ui:SliderInt name="levelsSlider" label="Levels" show-input-field="true" class="option" />
                 <ui:DropdownField name="generatorDropdown" label="Generator" class="option" />
                 <ui:DropdownField name="solverDropdown" label="Solver" class="option" />
+                <ui:Toggle name="animateToggle" label="Animate generation" class="option" />
                 <ui:IntegerField name="seedField" label="Seed (0 = random)" class="option" />
                 <ui:Button name="optionsBackButton" text="Back" class="menu-button menu-button--back" />
             </ui:VisualElement>

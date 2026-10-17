@@ -29,6 +29,7 @@ namespace MazePlace.Editor
             var goal = CreateMaterial("Goal", new Color(0.85f, 0.30f, 0.30f));
             var explored = CreateMaterial("Explored", new Color(0.35f, 0.55f, 0.90f));
             var path = CreateMaterial("Path", new Color(1.00f, 0.80f, 0.25f));
+            var cursor = CreateMaterial("Cursor", new Color(0.30f, 0.90f, 0.90f));
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -62,12 +63,14 @@ namespace MazePlace.Editor
             lantern.color = new Color(1f, 0.93f, 0.82f);
             Assign(player.GetComponent<PlayerController>(), ("head", head.transform));
 
-            var maze = new GameObject("Maze", typeof(MazeRenderer), typeof(SolveAnimator), typeof(MazeSession));
+            var maze = new GameObject("Maze", typeof(MazeRenderer), typeof(SolveAnimator), typeof(GenerationAnimator), typeof(MazeSession));
             Assign(maze.GetComponent<MazeRenderer>(), ("wallMaterial", wall), ("floorMaterial", floor), ("startMaterial", start), ("goalMaterial", goal));
             Assign(maze.GetComponent<SolveAnimator>(), ("exploredMaterial", explored), ("pathMaterial", path));
+            Assign(maze.GetComponent<GenerationAnimator>(), ("cursorMaterial", cursor));
             Assign(maze.GetComponent<MazeSession>(),
                 ("mazeRenderer", maze.GetComponent<MazeRenderer>()),
                 ("solveAnimator", maze.GetComponent<SolveAnimator>()),
+                ("generationAnimator", maze.GetComponent<GenerationAnimator>()),
                 ("overview", overview.GetComponent<OverviewCamera>()),
                 ("player", player.GetComponent<PlayerController>()));
             player.SetActive(false);

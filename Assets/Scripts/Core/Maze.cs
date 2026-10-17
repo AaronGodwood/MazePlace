@@ -57,7 +57,10 @@ namespace MazePlace.Core
         internal sealed class Builder
         {
             private readonly Direction[] passages;
+            private readonly List<(int Cell, Direction Direction)> steps = new List<(int Cell, Direction Direction)>();
+
             public MazeSize Size { get; }
+            public IReadOnlyList<(int Cell, Direction Direction)> Steps => steps;
 
             public Builder(MazeSize size)
             {
@@ -71,6 +74,7 @@ namespace MazePlace.Core
                     throw new InvalidOperationException($"Cannot carve {direction} out of the maze from {Size.CellAt(cell)}");
                 passages[cell] |= direction;
                 passages[neighbour] |= direction.Opposite();
+                steps.Add((cell, direction));
                 return neighbour;
             }
 
