@@ -18,6 +18,7 @@ namespace MazePlace.Game
         [Range(1, MaxLevels)] public int levels = 1;
         public GeneratorKind generator = GeneratorKind.Wilson;
         public SolverKind solver = SolverKind.GreedyBestFirst;
+        public bool animateGeneration = true;
         [Tooltip("0 picks a random seed")]
         public int seed;
 

@@ -13,6 +13,7 @@ namespace MazePlace.Game
     {
         [SerializeField] private MazeRenderer mazeRenderer;
         [SerializeField] private SolveAnimator solveAnimator;
+        [SerializeField] private GenerationAnimator generationAnimator;
         [SerializeField] private OverviewCamera overview;
         [SerializeField] private PlayerController player;
 
@@ -20,8 +21,11 @@ namespace MazePlace.Game
 
         public event Action MazeChanged;
         public event Action<SolveResult> Solved;
+        public event Action GenerationFinished;
 
-        public Maze Maze => mazeRenderer.Maze;
+        /// <summary>The finished maze, even while its generation is still being replayed.</summary>
+        public Maze Maze { get; private set; }
+        public bool IsGenerating => generationAnimator.IsRunning;
         public GeneratorKind Generator { get; private set; }
         public MazeSettings Settings => settings;
         public bool FirstPerson { get; private set; }
@@ -41,7 +45,11 @@ namespace MazePlace.Game
             }
         }
 
-        private void Awake() => settings.Load();
+        private void Awake()
+        {
+            settings.Load();
+            generationAnimator.Finished += () => GenerationFinished?.Invoke();
+        }
 
         private void Start()
         {
@@ -65,14 +73,20 @@ namespace MazePlace.Game
         public void Generate()
         {
             var random = new System.Random(settings.seed != 0 ? settings.seed : Environment.TickCount);
-            Show(Generators.Generate(settings.generator, settings.Size, random), settings.generator);
+            var generation = Generators.GenerateWithSteps(settings.generator, settings.Size, random);
+            Show(generation.Maze, settings.generator, Application.isPlaying && settings.animateGeneration ? generation : null);
         }
 
-        public void Show(Maze maze, GeneratorKind generator)
+        public void Show(Maze maze, GeneratorKind generator) => Show(maze, generator, replay: null);
+
+        private void Show(Maze maze, GeneratorKind generator, Generation replay)
         {
+            Maze = maze;
             Generator = generator;
             solveAnimator.Clear();
-            mazeRenderer.Render(maze);
+            generationAnimator.Stop();
+            if (replay != null) generationAnimator.Play(mazeRenderer, replay);
+            else mazeRenderer.Render(maze);
             overview.Frame(MazeLayout.Bounds(maze.Size));
             FocusLevel(maze.Size.Levels - 1);
             player.Spawn(maze, maze.StartCell);
@@ -81,6 +95,7 @@ namespace MazePlace.Game
 
         public SolveResult Solve()
         {
+            generationAnimator.Finish();
             var result = Solvers.Solve(settings.solver, Maze, Maze.StartCell, Maze.GoalCell);
             if (Application.isPlaying) solveAnimator.Play(mazeRenderer, result);
             else solveAnimator.ShowAll(mazeRenderer, result);

@@ -11,24 +11,64 @@ namespace MazePlace.Core
         Wilson,
     }
 
+    public sealed class Generation
+    {
+        public Maze Maze { get; }
+
+        /// <summary>Passages in the order the generator carved them, for replaying it.</summary>
+        public IReadOnlyList<(int Cell, Direction Direction)> Steps { get; }
+
+        internal Generation(Maze maze, IReadOnlyList<(int Cell, Direction Direction)> steps)
+        {
+            Maze = maze;
+            Steps = steps;
+        }
+
+        /// <summary>The maze partway through generation, with only the first <paramref name="stepCount"/> passages carved.</summary>
+        public Maze After(int stepCount)
+        {
+            if (stepCount < 0 || stepCount > Steps.Count)
+                throw new ArgumentOutOfRangeException(nameof(stepCount), stepCount, $"Expected 0 to {Steps.Count}");
+
+            var builder = new Maze.Builder(Maze.Size);
+            for (var i = 0; i < stepCount; i++)
+                builder.Carve(Steps[i].Cell, Steps[i].Direction);
+            return builder.Build();
+        }
+    }
+
     /// <summary>
     /// Each generator produces a perfect maze: a spanning tree of the grid, so every pair of
     /// cells is joined by exactly one path.
     /// </summary>
     public static class Generators
     {
-        public static Maze Generate(GeneratorKind kind, MazeSize size, Random random) => kind switch
+        public static Maze Generate(GeneratorKind kind, MazeSize size, Random random) =>
+            GenerateWithSteps(kind, size, random).Maze;
+
+        public static Generation GenerateWithSteps(GeneratorKind kind, MazeSize size, Random random)
         {
-            GeneratorKind.Kruskal => Kruskal(size, random),
-            GeneratorKind.DepthFirst => DepthFirst(size, random),
-            GeneratorKind.Wilson => Wilson(size, random),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
-        };
+            Action<Maze.Builder, Random> carve = kind switch
+            {
+                GeneratorKind.Kruskal => CarveKruskal,
+                GeneratorKind.DepthFirst => CarveDepthFirst,
+                GeneratorKind.Wilson => CarveWilson,
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+            };
+
+            var builder = new Maze.Builder(size);
+            carve(builder, random);
+            return new Generation(builder.Build(), builder.Steps);
+        }
+
+        public static Maze Kruskal(MazeSize size, Random random) => Generate(GeneratorKind.Kruskal, size, random);
+        public static Maze DepthFirst(MazeSize size, Random random) => Generate(GeneratorKind.DepthFirst, size, random);
+        public static Maze Wilson(MazeSize size, Random random) => Generate(GeneratorKind.Wilson, size, random);
 
         /// <summary>Randomised Kruskal's: join random edges whose ends are not yet connected.</summary>
-        public static Maze Kruskal(MazeSize size, Random random)
+        private static void CarveKruskal(Maze.Builder builder, Random random)
         {
-            var builder = new Maze.Builder(size);
+            var size = builder.Size;
             var sets = new DisjointSet(size.CellCount);
 
             // Only "forward" directions, so each internal edge is listed once.
@@ -45,14 +85,12 @@ namespace MazePlace.Core
                 if (sets.Union(cell, neighbour))
                     builder.Carve(cell, direction);
             }
-
-            return builder.Build();
         }
 
         /// <summary>Recursive backtracker: random walk to unvisited cells, backtracking at dead ends.</summary>
-        public static Maze DepthFirst(MazeSize size, Random random)
+        private static void CarveDepthFirst(Maze.Builder builder, Random random)
         {
-            var builder = new Maze.Builder(size);
+            var size = builder.Size;
             var visited = new bool[size.CellCount];
             var stack = new Stack<int>();
 
@@ -75,17 +113,15 @@ namespace MazePlace.Core
                 visited[next] = true;
                 stack.Push(next);
             }
-
-            return builder.Build();
         }
 
         /// <summary>
         /// Wilson's: loop-erased random walks from each cell outside the tree until they hit it.
         /// Unlike the other two, this samples uniformly from all possible mazes.
         /// </summary>
-        public static Maze Wilson(MazeSize size, Random random)
+        private static void CarveWilson(Maze.Builder builder, Random random)
         {
-            var builder = new Maze.Builder(size);
+            var size = builder.Size;
             var inTree = new bool[size.CellCount];
             inTree[random.Next(size.CellCount)] = true;
 
@@ -113,8 +149,6 @@ namespace MazePlace.Core
                     cell = builder.Carve(cell, exitDirection[cell]);
                 }
             }
-
-            return builder.Build();
         }
 
         private static void Shuffle<T>(T[] items, Random random)
