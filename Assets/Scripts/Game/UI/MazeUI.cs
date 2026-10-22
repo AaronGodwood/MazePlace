@@ -106,6 +106,10 @@ namespace MazePlace.Game.UI
                 Application.Quit();
 #endif
             });
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // A browser tab can't quit itself.
+            root.Q("quitButton").style.display = DisplayStyle.None;
+#endif
         }
 
         private void WireOptions()

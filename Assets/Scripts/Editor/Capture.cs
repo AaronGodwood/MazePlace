@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using MazePlace.Core;
 using MazePlace.Game;
 using UnityEditor;
@@ -39,6 +40,60 @@ namespace MazePlace.Editor
 
             session.OverviewCamera.targetTexture = null;
             session.PlayerCamera.targetTexture = null;
+            UnityEngine.Object.DestroyImmediate(target);
+        }
+
+        /// <summary>
+        /// Renders a numbered PNG sequence of the maze being generated and then solved, for the
+        /// README GIF: -executeMethod MazePlace.Editor.Capture.Frames -captureOutput folder
+        /// Optional: the same maze arguments as <see cref="Run"/>, plus -captureFrames 60 per phase.
+        /// </summary>
+        [MenuItem("MazePlace/Capture Animation Frames")]
+        public static void Frames()
+        {
+            EditorSceneManager.OpenScene("Assets/Scenes/Maze.unity");
+            var session = UnityEngine.Object.FindAnyObjectByType<MazeSession>();
+            var mazeRenderer = session.GetComponent<MazeRenderer>();
+            var solveAnimator = session.GetComponent<SolveAnimator>();
+            var settings = session.Settings;
+            ApplyArguments(settings);
+
+            var target = new RenderTexture(960, 540, 24);
+            session.OverviewCamera.targetTexture = target;
+
+            var random = new System.Random(settings.seed != 0 ? settings.seed : Environment.TickCount);
+            var generation = Generators.GenerateWithSteps(settings.generator, settings.Size, random);
+            session.Show(generation.Maze, settings.generator);
+            session.SetFirstPerson(false);
+
+            var output = ArgumentAfter("-captureOutput") ?? "Screenshots/frames";
+            var perPhase = int.TryParse(ArgumentAfter("-captureFrames"), out var frames) ? frames : 60;
+            var frame = 0;
+            void Snap()
+            {
+                session.OverviewCamera.Render();
+                Save(target, Path.Combine(output, $"frame{frame++:D4}.png"));
+            }
+
+            for (var i = 0; i <= perPhase; i++)
+            {
+                mazeRenderer.Render(generation.After(generation.Steps.Count * i / perPhase));
+                Snap();
+            }
+
+            var result = Solvers.Solve(settings.solver, generation.Maze, generation.Maze.StartCell, generation.Maze.GoalCell);
+            var total = result.Explored.Count + result.Path.Count;
+            for (var i = 0; i <= perPhase; i++)
+            {
+                var shown = total * i / perPhase;
+                var explored = result.Explored.Take(shown).ToArray();
+                var path = result.Path.Take(shown - explored.Length).ToArray();
+                solveAnimator.ShowAll(mazeRenderer, new SolveResult(explored, path));
+                Snap();
+            }
+
+            solveAnimator.Clear();
+            session.OverviewCamera.targetTexture = null;
             UnityEngine.Object.DestroyImmediate(target);
         }
 
